@@ -1,49 +1,13 @@
 import streamlit as st
 import subprocess
 import copy
+import os
 
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(page_title="Sudoku Solver", page_icon="🧩", layout="centered")
 
 st.title("🧩 Sudoku Solver")
 st.caption("Powered by SWI-Prolog CLP(FD)")
-
-# ── Example puzzles ───────────────────────────────────────────────────────────
-EXAMPLES = {
-    "Easy": [
-        [0,0,3,0,2,0,6,0,0],
-        [9,0,0,3,0,5,0,0,1],
-        [0,0,1,8,0,6,4,0,0],
-        [0,0,8,1,0,2,9,0,0],
-        [7,0,0,0,0,0,0,0,8],
-        [0,0,6,7,0,8,2,0,0],
-        [0,0,2,6,0,9,5,0,0],
-        [8,0,0,2,0,3,0,0,9],
-        [0,0,5,0,1,0,3,0,0],
-    ],
-    "Medium": [
-        [0,0,0,2,6,0,7,0,1],
-        [6,8,0,0,7,0,0,9,0],
-        [1,9,0,0,0,4,5,0,0],
-        [8,2,0,1,0,0,0,4,0],
-        [0,0,4,6,0,2,9,0,0],
-        [0,5,0,0,0,3,0,2,8],
-        [0,0,9,3,0,0,0,7,4],
-        [0,4,0,0,5,0,0,3,6],
-        [7,0,3,0,1,8,0,0,0],
-    ],
-    "Hard": [
-        [0,0,0,0,0,0,0,0,0],
-        [0,0,0,0,0,3,0,8,5],
-        [0,0,1,0,2,0,0,0,0],
-        [0,0,0,5,0,7,0,0,0],
-        [0,0,4,0,0,0,1,0,0],
-        [0,9,0,0,0,0,0,0,0],
-        [5,0,0,0,0,0,0,7,3],
-        [0,0,2,0,1,0,0,0,0],
-        [0,0,0,0,4,0,0,0,9],
-    ],
-}
 
 # ── Session state ─────────────────────────────────────────────────────────────
 if "board" not in st.session_state:
@@ -71,12 +35,49 @@ def board_from_session():
     return board
 
 
+def get_puzzle_from_prolog(difficulty):
+    """
+    Fetch a puzzle from Prolog using the puzzle/2 predicate.
+
+    Args:
+        difficulty: one of 'easy', 'medium', or 'hard'
+
+    Returns:
+        9x9 list of lists with integers 0-9 (0 = empty), or None on error
+    """
+    goal = f"print_puzzle_as_list({difficulty})"
+
+    try:
+        result = subprocess.run(
+            ["swipl", "-q", "-g", goal, "-t", "halt", "solver.pl"],
+            capture_output=True, text=True, timeout=5,
+            cwd=os.path.dirname(os.path.abspath(__file__))
+        )
+
+        if result.returncode != 0:
+            return None
+
+        # Parse output: each line is like "[0,0,3,0,2,0,6,0,0]"
+        board = []
+        for line in result.stdout.strip().splitlines():
+            line = line.strip().strip("[]")
+            if line:
+                cells = [int(cell.strip()) for cell in line.split(",")]
+                if len(cells) == 9:
+                    board.append(cells)
+
+        return board if len(board) == 9 else None
+
+    except Exception:
+        return None
+
+
 
 # ── Prolog solver ─────────────────────────────────────────────────────────────
 
 def solve_prolog(board):
     """
-    Solves a Sudoku board using the atva02.pl Prolog solver.
+    Solves a Sudoku board using the solver.pl Prolog solver.
 
     Args:
         board: 9x9 list of lists with integers 0-9 (0 = empty)
@@ -95,11 +96,9 @@ def solve_prolog(board):
     # Build the goal to call solve_and_print/1
     goal = f"solve_and_print({board_str})"
 
-    import os
-
     try:
         result = subprocess.run(
-            ["swipl", "-q", "-g", goal, "-t", "halt", "atva02.pl"],
+            ["swipl", "-q", "-g", goal, "-t", "halt", "solver.pl"],
             capture_output=True, text=True, timeout=10,
             cwd=os.path.dirname(os.path.abspath(__file__))
         )
@@ -144,37 +143,43 @@ with col1:
         st.rerun()
 with col2:
     if st.button("Easy", use_container_width=True):
-        st.session_state.board = copy.deepcopy(EXAMPLES["Easy"])
-        st.session_state.solution = None
-        st.session_state.error = None
-        # Populate cell inputs with example
-        for r in range(9):
-            for c in range(9):
-                val = EXAMPLES["Easy"][r][c]
-                st.session_state[f"cell_{r}_{c}"] = str(val) if val != 0 else ""
-        st.rerun()
+        puzzle = get_puzzle_from_prolog('easy')
+        if puzzle:
+            st.session_state.board = copy.deepcopy(puzzle)
+            st.session_state.solution = None
+            st.session_state.error = None
+            # Populate cell inputs with example
+            for r in range(9):
+                for c in range(9):
+                    val = puzzle[r][c]
+                    st.session_state[f"cell_{r}_{c}"] = str(val) if val != 0 else ""
+            st.rerun()
 with col3:
     if st.button("Medium", use_container_width=True):
-        st.session_state.board = copy.deepcopy(EXAMPLES["Medium"])
-        st.session_state.solution = None
-        st.session_state.error = None
-        # Populate cell inputs with example
-        for r in range(9):
-            for c in range(9):
-                val = EXAMPLES["Medium"][r][c]
-                st.session_state[f"cell_{r}_{c}"] = str(val) if val != 0 else ""
-        st.rerun()
+        puzzle = get_puzzle_from_prolog('medium')
+        if puzzle:
+            st.session_state.board = copy.deepcopy(puzzle)
+            st.session_state.solution = None
+            st.session_state.error = None
+            # Populate cell inputs with example
+            for r in range(9):
+                for c in range(9):
+                    val = puzzle[r][c]
+                    st.session_state[f"cell_{r}_{c}"] = str(val) if val != 0 else ""
+            st.rerun()
 with col4:
     if st.button("Hard", use_container_width=True):
-        st.session_state.board = copy.deepcopy(EXAMPLES["Hard"])
-        st.session_state.solution = None
-        st.session_state.error = None
-        # Populate cell inputs with example
-        for r in range(9):
-            for c in range(9):
-                val = EXAMPLES["Hard"][r][c]
-                st.session_state[f"cell_{r}_{c}"] = str(val) if val != 0 else ""
-        st.rerun()
+        puzzle = get_puzzle_from_prolog('hard')
+        if puzzle:
+            st.session_state.board = copy.deepcopy(puzzle)
+            st.session_state.solution = None
+            st.session_state.error = None
+            # Populate cell inputs with example
+            for r in range(9):
+                for c in range(9):
+                    val = puzzle[r][c]
+                    st.session_state[f"cell_{r}_{c}"] = str(val) if val != 0 else ""
+            st.rerun()
 with col5:
     solve_clicked = st.button("▶ Solve", use_container_width=True, type="primary")
 
@@ -249,6 +254,11 @@ if solve_clicked:
     st.session_state.board = current_board
     st.session_state.solution = None
     st.session_state.error = None
+
+    # Validate board is not empty
+    if all(v == 0 for row in current_board for v in row):
+        st.warning("Please enter at least one clue.")
+        st.stop()
 
     solution, err = solve_prolog(current_board)
     if solution:
