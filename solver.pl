@@ -1,4 +1,4 @@
-/** atva02.pl
+/** solver.pl
  *
  * Sudoku 9x9 Solver in Prolog
  * Logic Applied to Computing - Final Project
@@ -282,7 +282,7 @@ about :-
 % solve_and_print(+Board)
 % Accepts a 9x9 board (with variables for empty cells) and prints the solution.
 % Each row is printed on a single line in the format: [1,2,3,4,5,6,7,8,9]
-% Usage: swipl -q -g "solve_and_print(Board)" -t halt atva02.pl
+% Usage: swipl -q -g "solve_and_print(Board)" -t halt solver.pl
 solve_and_print(Board) :-
     (   sudoku(Board)
     ->  maplist(writeln, Board)
@@ -295,7 +295,7 @@ solve_and_print(Board) :-
 % =============================================================================
 
 % To run the interactive CLI, use:
-%   swipl -q -g main -t halt atva02.pl
+%   swipl -q -g main -t halt solver.pl
 %
 % The automatic initialization is commented out to allow programmatic usage
 % from external programs (like app.py) without interference.
