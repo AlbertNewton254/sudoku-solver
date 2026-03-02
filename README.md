@@ -1,25 +1,35 @@
 # Sudoku Solver
 
-A flexible 9×9 Sudoku solver combining the power of Prolog's constraint logic programming with a user-friendly Python interface. Originally developed for the Logic Applied to Computing course at UFPB (Federal University of Paraíba, Brazil), this project demonstrates practical applications of declarative programming and automated reasoning.
+A modern 9×9 Sudoku solver combining the power of Prolog's constraint logic. Originally developed for the Logic Applied to Computing course at UFPB (Federal University of Paraíba, Brazil), this project demonstrates practical applications of declarative programming and automated reasoning.
 
 ## Features
 
-- **Multiple Input Formats**: Accepts various input styles and preserves the original format in output
-  - Compact: `123456789`
-  - Spaced: `1 2 3 4 5 6 7 8 9`
-  - Comma-separated: `1,2,3,4,5,6,7,8,9`
-  - Dots for empty cells: `..3.2.6..`
-  - Zeros for empty cells: `003020600`
-  - Mixed formats: `1 2,3 4 5,6 7 8 9`
+- **Modern Web Interface**: Beautiful, interactive Streamlit-based UI
+  - Click-to-edit cells
+  - Real-time validation
+  - Visual distinction between clues and solutions
+  - Pre-loaded example puzzles (Easy, Medium, Hard)
 
-- **Flexible Usage**:
-  - Interactive command-line mode
-  - File-based input/output
-  - Direct Prolog interface with example puzzles
+- **Efficient Solving**: Uses SWI-Prolog's CLP(FD) library for constraint-based solving
+  - Constraint propagation with backtracking
+  - Typically solves puzzles in under 1 second
+  - Guaranteed to find solution if one exists
 
-- **Efficient Solving**: Uses SWI-Prolog's CLP(FD) library for constraint-based solving with backtracking
+- **Docker-Ready**: Containerized deployment with all dependencies included
+
+- **Direct Prolog Integration**: No Python fallback - pure Prolog solving power
 
 ## Requirements
+
+### Quick Start (Docker - Recommended)
+
+- **Docker**: For containerized deployment with all dependencies
+  ```bash
+  # Build and run in one command
+  docker build -t sudoku-solver . && docker run -p 8501:8501 sudoku-solver
+  ```
+
+### Local Development
 
 - **SWI-Prolog**: Version 7.0 or higher
   ```bash
@@ -33,9 +43,14 @@ A flexible 9×9 Sudoku solver combining the power of Prolog's constraint logic p
   sudo dnf install pl
   ```
 
-- **Python 3.6+**: For the wrapper interface (sudoku_solver.py)
+- **Python 3.12+**: With Streamlit
+  ```bash
+  pip install -r requirements.txt
+  ```
 
-## Installation
+## Installation & Usage
+
+### Option 1: Docker (Recommended)
 
 1. Clone this repository:
    ```bash
@@ -43,40 +58,49 @@ A flexible 9×9 Sudoku solver combining the power of Prolog's constraint logic p
    cd sudoku-solver
    ```
 
-2. Verify SWI-Prolog installation:
+2. Build and run the Docker container:
+   ```bash
+   docker build -t sudoku-solver .
+   docker run -p 8501:8501 sudoku-solver
+   ```
+
+3. Open your browser to `http://localhost:8501`
+
+### Option 2: Local Development
+
+1. Clone and install dependencies:
+   ```bash
+   git clone https://github.com/AlbertNewton/sudoku-solver.git
+   cd sudoku-solver
+   pip install -r requirements.txt
+   ```
+
+2. Verify SWI-Prolog is installed:
    ```bash
    swipl --version
    ```
 
-## Usage
+3. Run the Streamlit app:
+   ```bash
+   streamlit run app.py
+   ```
 
-### Python Wrapper (Recommended)
+4. Open your browser to `http://localhost:8501`
 
-**Interactive Mode**:
-```bash
-python3 sudoku_solver.py
-```
-You'll be prompted to enter the puzzle line by line.
+## Using the Web Interface
 
-**From File**:
-```bash
-python3 sudoku_solver.py --input puzzle.txt
-```
+1. **Enter a Puzzle**: Click any cell and type a number (1-9), or leave empty
+2. **Try Examples**: Click Easy, Medium, or Hard for pre-loaded puzzles
+3. **Solve**: Click the ▶ Solve button
+4. **View Solution**: Original clues appear in dark blue, solved cells in green
+5. **Try Again**: Click 🔄 Try Again to modify the puzzle
+6. **Clear**: Click 🗑️ Clear to start fresh
 
-**Save to File**:
-```bash
-python3 sudoku_solver.py --input puzzle.txt --output solution.txt
-```
-
-**Command-line Options**:
-- `--input, -i`: Input file containing the puzzle
-- `--output, -o`: Output file for the solution
-
-### Direct Prolog Interface
+### Direct Prolog Interface (CLI)
 
 Run the interactive Prolog menu:
 ```bash
-swipl atva02.pl
+swipl -q -g main -t halt atva02.pl
 ```
 
 The menu offers:
@@ -87,54 +111,37 @@ The menu offers:
 
 ### Programmatic Prolog Usage
 
-```prolog
-swipl -g "puzzle(easy, B), sudoku(B), display_board(B), halt" atva02.pl
+Solve a puzzle programmatically:
+```bash
+swipl -q -g "solve_and_print([[_,_,3,_,2,_,6,_,_],[9,_,_,3,_,5,_,_,1],...])" -t halt atva02.pl
 ```
 
-## Input Format Examples
-
-The solver accepts various formats per line. Comments (lines starting with `#`, `%`, or `//`) are ignored.
-
-**Example 1: Compact with zeros**
-```
-003020600
-900305001
-001806400
-008102900
-700000008
-006708200
-002609500
-800203009
-005010300
+Or use example puzzles:
+```bash
+swipl -q -g "puzzle(easy, B), sudoku(B), display_board(B)" -t halt atva02.pl
 ```
 
-**Example 2: Dots for empty cells**
+## Example Puzzles
+
+The application includes three built-in example puzzles:
+
+### Easy Puzzle
 ```
-..3.2.6..
-9..3.5..1
-..1.8.6.4..
-..8.1.2.9..
-7........8
-..6.7.8.2..
-..2.6.9.5..
-8..2.3..9
-..5..1..3..
+_ _ 3 | _ 2 _ | 6 _ _
+9 _ _ | 3 _ 5 | _ _ 1
+_ _ 1 | 8 _ 6 | 4 _ _
+------+-------+------
+_ _ 8 | 1 _ 2 | 9 _ _
+7 _ _ | _ _ _ | _ _ 8
+_ _ 6 | 7 _ 8 | 2 _ _
+------+-------+------
+_ _ 2 | 6 _ 9 | 5 _ _
+8 _ _ | 2 _ 3 | _ _ 9
+_ _ 5 | _ 1 _ | 3 _ _
 ```
 
-**Example 3: Spaced format**
-```
-0 0 3 0 2 0 6 0 0
-9 0 0 3 0 5 0 0 1
-0 0 1 8 0 6 4 0 0
-0 0 8 1 0 2 9 0 0
-7 0 0 0 0 0 0 0 8
-0 0 6 7 0 8 2 0 0
-0 0 2 6 0 9 5 0 0
-8 0 0 2 0 3 0 0 9
-0 0 5 0 1 0 3 0 0
-```
-
-The output format will match the input format automatically!
+### Medium & Hard Puzzles
+Access these directly in the web interface by clicking the respective buttons.
 
 ## How It Works
 
@@ -153,20 +160,22 @@ Key predicates:
 - `valid_rows/1`, `valid_columns/1`, `valid_regions/1`: Constraint validators
 - `display_board/1`: Pretty-prints the board
 
-### Python Wrapper (sudoku_solver.py)
+### Streamlit Web Interface (app.py)
 
-The Python script provides:
-- **Format Detection**: Identifies and records the input format of each line
-- **Parser**: Normalizes various input formats into a standard board representation
-- **Prolog Interface**: Generates Prolog goals and executes SWI-Prolog as a subprocess
-- **Format Preservation**: Reconstructs output in the original input format
+The web interface provides:
+- **Interactive Grid**: Click-to-edit cells with real-time validation
+- **Visual Feedback**: Distinguishes between clues and solutions
+- **Prolog Integration**: Calls atva02.pl directly via subprocess
+- **Session Management**: Maintains puzzle state across interactions
 
 ## Project Structure
 
 ```
 sudoku-solver/
-├── atva02.pl           # Prolog solver with CLP(FD)
-├── sudoku_solver.py    # Python wrapper and CLI interface
+├── atva02.pl           # Prolog solver core with CLP(FD)
+├── app.py              # Streamlit web interface
+├── Dockerfile          # Container definition
+├── requirements.txt    # Python dependencies
 ├── LICENSE             # MIT License
 └── README.md           # This file
 ```
@@ -182,38 +191,25 @@ sudoku-solver/
 - Worst case: $O(9^n)$ where $n$ is the number of empty cells
 - Typical performance: < 1 second for most puzzles due to constraint propagation
 
-## Example Session
+## Architecture
 
-```bash
-$ python3 sudoku_solver.py
-Enter the Sudoku puzzle (9 lines).
-Supported formats per line:
-  • 123456789
-  • 1 2 3 4 5 6 7 8 9
-  • 1,2,3,4,5,6,7,8,9
-  • ..3.2.6..
-  • 003020600
-Lines starting with # are ignored.
+```
+┌─────────────────┐
+│   app.py        │  Streamlit Web UI
+│   (Python)      │  - Interactive grid
+└────────┬────────┘  - Session management
+         │
+         │ subprocess.run()
+         │
+┌────────▼────────┐
+│   atva02.pl     │  Prolog Solver
+│   (SWI-Prolog)  │  - CLP(FD) constraints
+└─────────────────┘  - Backtracking search
 
-Line 1: ..3.2.6..
-Line 2: 9..3.5..1
-Line 3: ..1.8.6.4..
-Line 4: ..8.1.2.9..
-Line 5: 7........8
-Line 6: ..6.7.8.2..
-Line 7: ..2.6.9.5..
-Line 8: 8..2.3..9
-Line 9: ..5..1..3..
-Solving...
-483921657
-967345821
-251876493
-548132976
-729564138
-136798245
-372689514
-814253769
-695417382
+┌─────────────────┐
+│   Dockerfile    │  Containerization
+│                 │  - SWI-Prolog + Streamlit
+└─────────────────┘  - Production ready
 ```
 
 ## License
