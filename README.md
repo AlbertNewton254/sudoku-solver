@@ -100,7 +100,7 @@ A modern 9×9 Sudoku solver using Prolog's constraint logic. Originally develope
 
 Run the interactive Prolog menu:
 ```bash
-swipl -q -g main -t halt atva02.pl
+swipl -q -g main -t halt solver.pl
 ```
 
 The menu offers:
@@ -113,12 +113,12 @@ The menu offers:
 
 Solve a puzzle programmatically:
 ```bash
-swipl -q -g "solve_and_print([[_,_,3,_,2,_,6,_,_],[9,_,_,3,_,5,_,_,1],...])" -t halt atva02.pl
+swipl -q -g "solve_and_print([[_,_,3,_,2,_,6,_,_],[9,_,_,3,_,5,_,_,1],...])" -t halt solver.pl
 ```
 
 Or use example puzzles:
 ```bash
-swipl -q -g "puzzle(easy, B), sudoku(B), display_board(B)" -t halt atva02.pl
+swipl -q -g "puzzle(easy, B), sudoku(B), display_board(B)" -t halt solver.pl
 ```
 
 ## Example Puzzles
@@ -145,7 +145,7 @@ Access these directly in the web interface by clicking the respective buttons.
 
 ## How It Works
 
-### Prolog Core (atva02.pl)
+### Prolog Core (solver.pl)
 
 The solver uses Constraint Logic Programming over Finite Domains (CLP(FD)):
 
@@ -165,14 +165,14 @@ Key predicates:
 The web interface provides:
 - **Interactive Grid**: Click-to-edit cells with real-time validation
 - **Visual Feedback**: Distinguishes between clues and solutions
-- **Prolog Integration**: Calls atva02.pl directly via subprocess
+- **Prolog Integration**: Calls solver.pl directly via subprocess
 - **Session Management**: Maintains puzzle state across interactions
 
 ## Project Structure
 
 ```
 sudoku-solver/
-├── atva02.pl           # Prolog solver core with CLP(FD)
+├── solver.pl           # Prolog solver core with CLP(FD)
 ├── app.py              # Streamlit web interface
 ├── Dockerfile          # Container definition
 ├── requirements.txt    # Python dependencies
@@ -202,7 +202,7 @@ sudoku-solver/
          │ subprocess.run()
          │
 ┌────────▼────────┐
-│   atva02.pl     │  Prolog Solver
+│   solver.pl     │  Prolog Solver
 │   (SWI-Prolog)  │  - CLP(FD) constraints
 └─────────────────┘  - Backtracking search
 
